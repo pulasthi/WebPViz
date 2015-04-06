@@ -29,13 +29,14 @@
 
             <!-- Custom theme for Boostrap -->
         <link href="@routes.Assets.at("stylesheets/theme/bootstrap.min.css")" rel="stylesheet">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     </head>
 
     <body>
 
             <!-- Static navbar -->
         <nav class="navbar navbar-default navbar-static-top">
-            <div class="container">
+            <div class="container-fluid">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                         <span class="sr-only">Toggle navigation</span>
@@ -53,8 +54,9 @@
                         <li><a href="#">About</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
+                        <li id="webgl-stats"></li>
                     @if(user == null) {
-                        <li class="dropdown">
+                        <li>
                             <a href="@routes.Application.login()">Sign in</a>
                         </li>
                     } else {
@@ -71,7 +73,7 @@
         </nav>
 
 
-        <div class="container">
+        <div class="container-fluid viz">
 
         @content
 
@@ -81,7 +83,6 @@
         <!-- Bootstrap core JavaScript
     ================================================== -->
         <!-- Placed at the end of the document so the pages load faster -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         <script src="@routes.Assets.at("javascripts/bootstrap.min.js")"></script>
             <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
         <script src="@routes.Assets.at("javascripts/ie10-viewport-bug-workaround.js")"></script>

@@ -13,6 +13,7 @@ import play.mvc.Security;
 import views.html.dashboard;
 import views.html.index;
 import views.html.login;
+import views.html.resultset;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,12 +28,12 @@ public class Application extends Controller {
 
     public static Result index() {
         User loggedInUser = User.findByEmail(session().get("email"));
-        return ok(index.render(loggedInUser));
+        return ok(index.render(loggedInUser, ResultSet.all()));
     }
 
     public static Result logout() {
         session().clear();
-        return ok(index.render(null));
+        return ok(index.render(null, ResultSet.all()));
     }
 
     public static Result login() {
@@ -76,7 +77,10 @@ public class Application extends Controller {
     }
 
     public static Result visualize(Long resultSetId){
-        return ok();
+        User loggedInUser = User.findByEmail(request().username());
+        ResultSet r = ResultSet.findById(resultSetId);
+
+        return ok(resultset.render(loggedInUser, r));
     }
 
     public static Result uploadGet() {

@@ -90,6 +90,10 @@ public class ResultSet extends Model {
         return r;
     }
 
+    public static ResultSet findById(Long id) {
+        return find.byId(id);
+    }
+
     public static ResultSet findByName(String name) {
         return find.where().eq("name", name).findUnique();
     }
