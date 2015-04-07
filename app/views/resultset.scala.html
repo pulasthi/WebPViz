@@ -17,9 +17,14 @@
     </div>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/three.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/threeutils/Detector.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/threeutils/TrackballControls.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/threeutils/stats.min.js")"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.1.1/randomColor.min.js"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/pviz.js")"></script>
     <script type="text/javascript">
-        visualize(@resultSet.id);
+        $.getJSON("@routes.Application.resultset(resultSet.id)", function (data) {
+            var resultSetUrl = "@routes.Application.resultset(resultSet.id)";
+            visualize(resultSetUrl, data);
+        });
     </script>
 }

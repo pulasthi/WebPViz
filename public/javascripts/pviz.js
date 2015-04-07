@@ -1,58 +1,86 @@
 if (!Detector.webgl) Detector.addGetWebGLMessage();
 
+var clusters;
 var container, stats;
-var camera, scene, renderer, particles, geometry, material, i, h, color, sprite, size;
+var camera, scene, renderer, material, i, h, color, sprite, size, controls, light;
+var geometry = [];
 var mouseX = 0, mouseY = 0;
 
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = (window.innerHeight - 51) / 2;
 
+var clusterUrl;
+
 function init() {
     container = document.getElementById('viz-container');
     document.body.appendChild(container);
 
-    camera = new THREE.PerspectiveCamera(55, window.innerWidth / (window.innerHeight - 51), 2, 2000);
-    camera.position.z = 1000;
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / (window.innerHeight - 51), 1, 100);
+    camera.position.z = 6;
 
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.001);
+    //scene.fog = new THREE.FogExp2(0x000000, 0.001);
 
-    geometry = new THREE.Geometry();
+    controls = new THREE.TrackballControls(camera);
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+    controls.noZoom = false;
+    controls.noPan = false;
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+    controls.keys = [ 65, 83, 68 ];
+    controls.addEventListener('change', render);
 
-    sprite = THREE.ImageUtils.loadTexture("/assets/textures/sprites/disc.png");
-
-    for (i = 0; i < 10000; i++) {
-        var vertex = new THREE.Vector3();
-        vertex.x = 2000 * Math.random() - 1000;
-        vertex.y = 2000 * Math.random() - 1000;
-        vertex.z = 2000 * Math.random() - 1000;
-
-        geometry.vertices.push(vertex);
-    }
-
-    material = new THREE.PointCloudMaterial({
-        size: 35,
-        sizeAttenuation: false,
-        map: sprite,
-        alphaTest: 0.5,
-        transparent: true
+    var randomClusterColors = randomColor({
+        count: clusters.length,
+        luminosity: 'light'
     });
-    material.color.setHSL(1.0, 0.3, 0.7);
 
-    particles = new THREE.PointCloud(geometry, material);
-    scene.add(particles);
+    sprite = THREE.ImageUtils.loadTexture("/assets/textures/sprites/ball.png");
 
-    renderer = new THREE.WebGLRenderer();
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, (window.innerHeight - 51));
+    material = new THREE.PointCloudMaterial({ size: 0.1, map: sprite, vertexColors: THREE.VertexColors, transparent: true });
+    material.color.setHSL(1, 1, 1);
+
+    clusters.forEach(function(cluster, j, array){
+        $.getJSON(clusterUrl + cluster.cluster, function(data){
+            var g = new THREE.Geometry();
+            geometry.push(g);
+            var colors = [];
+
+            for (var i in data.points){
+                var p = data.points[i];
+
+                //var hsl = [heus[data.cid], 1, 0.8];
+
+                var vertex = new THREE.Vector3(p.x * 10, p.y * 10, p.z * 10);
+                g.vertices.push(vertex);
+
+                //var hsl = randomClusterColors[i];
+                //colors[i] = new THREE.Color(0xffffff);
+                //colors[i].setHSL(hsl[0], hsl[1], hsl[2]);
+                var color = parseInt(randomClusterColors[j].replace(/^#/, ''), 16);
+                colors[i] = new THREE.Color(color);
+            }
+
+            g.colors = colors;
+            var particles = new THREE.PointCloud(g, material);
+            particles.sortParticles = true;
+            scene.add(particles);
+        });
+    });
+
+    renderer = new THREE.WebGLRenderer({clearAlpha: 1, antialias: true, alpha: true});
+    //renderer.setClearColor(0xffffff, 1);
+    renderer.setSize(window.innerWidth, window.innerHeight - 51);
     container.appendChild(renderer.domElement);
 
     stats = new Stats();
     document.getElementById('webgl-stats').appendChild(stats.domElement);
 
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
-    document.addEventListener('touchstart', onDocumentTouchStart, false);
-    document.addEventListener('touchmove', onDocumentTouchMove, false);
+    //document.addEventListener('mousemove', onDocumentMouseMove, false);
+    //document.addEventListener('touchstart', onDocumentTouchStart, false);
+    //document.addEventListener('touchmove', onDocumentTouchMove, false);
 
     window.addEventListener('resize', onWindowResize, false);
 }
@@ -65,55 +93,24 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, (window.innerHeight - 51));
+    controls.handleResize();
 }
-
-function onDocumentMouseMove(event) {
-    mouseX = event.clientX - windowHalfX;
-    mouseY = event.clientY - windowHalfY;
-}
-
-function onDocumentTouchStart(event) {
-    if (event.touches.length == 1) {
-        event.preventDefault();
-
-        mouseX = event.touches[0].pageX - windowHalfX;
-        mouseY = event.touches[0].pageY - windowHalfY;
-    }
-}
-
-function onDocumentTouchMove(event) {
-    if (event.touches.length == 1) {
-        event.preventDefault();
-
-        mouseX = event.touches[0].pageX - windowHalfX;
-        mouseY = event.touches[0].pageY - windowHalfY;
-    }
-}
-
 //
 
 function animate() {
     requestAnimationFrame(animate);
-
+    controls.update();
     render();
     stats.update();
 }
 
 function render() {
-    var time = Date.now() * 0.00005;
-
-    camera.position.x += ( mouseX - camera.position.x ) * 0.05;
-    camera.position.y += ( -mouseY - camera.position.y ) * 0.05;
-
-    camera.lookAt(scene.position);
-
-    h = ( 351 * ( 1.0 + time ) % 351 ) / 351;
-    material.color.setHSL(h, 0.5, 0.5);
-
     renderer.render(scene, camera);
 }
 
-function visualize(id){
+function visualize(resultSetUrl, resultSet){
+    clusterUrl = resultSetUrl + "/cluster/";
+    clusters = resultSet.clusters;
     init();
     animate();
 }

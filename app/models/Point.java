@@ -61,7 +61,7 @@ public class Point extends Model{
         return p;
     }
 
-    public static List<Point> findByCluster(ResultSet resultSet, Cluster cluster){
-        return find.where().eq("resultSet", resultSet.id).eq("cluster", cluster.id).findList();
+    public static List<Point> findByCluster(Long rid, Long cid){
+        return find.where().eq("resultSet", rid).eq("cluster", cid).findList();
     }
 }

@@ -74,7 +74,7 @@ public class ResultSet extends Model {
         String[] record;
         while ((record = reader.readNext()) != null) {
             Integer clusterId = Integer.valueOf(record[4].trim());
-            Cluster c = Cluster.findByClusterId(clusterId);
+            Cluster c = Cluster.findByClusterId(r.id, clusterId);
             if (c == null) {
                 c = Cluster.create(clusterId, r);
             }

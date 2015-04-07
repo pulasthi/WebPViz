@@ -1,11 +1,15 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.Cluster;
+import models.Point;
 import models.ResultSet;
 import models.User;
 import models.utils.AppException;
 import play.Logger;
 import play.data.Form;
 import play.data.validation.Constraints;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -17,6 +21,7 @@ import views.html.resultset;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static play.data.Form.form;
 
@@ -89,6 +94,32 @@ public class Application extends Controller {
 
     public static Result authenticateGet() {
         return redirect(controllers.routes.Application.login());
+    }
+
+    public static Result resultset(Long id){
+        ResultSet r = ResultSet.findById(id);
+        ObjectNode result = Json.newObject();
+        result.put("id", id);
+        result.put("name", r.name);
+        result.put("desc", r.description);
+        result.put("uploaded", User.findById(r.uploaderId).email);
+
+        List<Cluster> clusters = Cluster.findByResultSet(r.id);
+
+        result.put("clusters", Json.toJson(clusters));
+
+        return ok(result);
+    }
+
+    public static Result cluster(Long rid, Integer cid){
+        Cluster c = Cluster.findByClusterId(rid, cid);
+        ObjectNode result = Json.newObject();
+        result.put("id", c.id);
+        result.put("rid", c.resultSet);
+        result.put("cid", c.cluster);
+        result.put("points", Json.toJson(Point.findByCluster(rid, c.id)));
+
+        return ok(result);
     }
 
     /**

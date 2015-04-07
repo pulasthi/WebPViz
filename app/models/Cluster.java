@@ -53,11 +53,11 @@ public class Cluster extends Model {
         return c;
     }
 
-    public static Cluster findByClusterId(Integer cluster) {
-        return find.where().eq("cluster", cluster).findUnique();
+    public static Cluster findByClusterId(Long rId, Integer cluster) {
+        return find.where().eq("cluster", cluster).eq("resultSet", rId).findUnique();
     }
 
-    public static List<Cluster> findByResultSet(ResultSet resultSet) {
-        return find.where().eq("resultSet", resultSet.id).findList();
+    public static List<Cluster> findByResultSet(Long id) {
+        return find.where().eq("resultSet", id).findList();
     }
 }
