@@ -38,9 +38,9 @@ public class Global extends GlobalSettings{
     }
 
     private void registerAdmins() throws AppException {
-        String email = "mpathira@indiana.edu";
-        String password = "testpassword";
-        String fullname = "Milinda Pathirage";
+        String email = "pswickra@indiana.edu";
+        String password = "1234qwe";
+        String fullname = "Pulasthi Supun";
 
         if (User.findByEmail(email) == null) {
             User.create(email, password, fullname);

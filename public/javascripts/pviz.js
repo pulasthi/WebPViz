@@ -12,7 +12,7 @@ var windowHalfY = (window.innerHeight - 51) / 2;
 var clusterUrl;
 
 function init() {
-    container = document.getElementById('viz-container');
+    container = document.getElementById('canvas3d');
     document.body.appendChild(container);
 
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / (window.innerHeight - 51), 1, 100);
@@ -44,6 +44,8 @@ function init() {
 
     clusters.forEach(function(cluster, j, array){
         $.getJSON(clusterUrl + cluster.cluster, function(data){
+            alert(cluster.cluster);
+
             var g = new THREE.Geometry();
             geometry.push(g);
             var colors = [];

@@ -1,10 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import models.Cluster;
-import models.Point;
-import models.ResultSet;
-import models.User;
+import models.*;
 import models.utils.AppException;
 import play.Logger;
 import play.data.Form;
@@ -21,6 +18,7 @@ import views.html.resultset;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static play.data.Form.form;
@@ -48,7 +46,7 @@ public class Application extends Controller {
     @Security.Authenticated(Secured.class)
     public static Result dashboard() {
         User loggedInUser = User.findByEmail(request().username());
-        return ok(dashboard.render(loggedInUser, false, null, ResultSet.all()));
+        return ok(dashboard.render(loggedInUser, false, null, ResultSet.all(), TimeSeries.all()));
     }
 
     @Security.Authenticated(Secured.class)
@@ -60,11 +58,11 @@ public class Application extends Controller {
         String[] desc = body.asFormUrlEncoded().get("desc");
         String description = "No description";
         if (name.length < 1 || name[0].isEmpty() || name[0].equalsIgnoreCase(" ")) {
-            return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all()));
+            return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all(), TimeSeries.all()));
         }
 
         if (ResultSet.findByName(name[0]) != null) {
-            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all()));
+            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
         }
 
         if (desc.length >= 1) {
@@ -77,11 +75,48 @@ public class Application extends Controller {
             ResultSet.createFromFile(name[0], description, loggedInUser, file);
             return GO_DASHBOARD;
         } else {
-            return badRequest(dashboard.render(loggedInUser, true, "Missing file.", ResultSet.all()));
+            return badRequest(dashboard.render(loggedInUser, true, "Missing file.", ResultSet.all(), TimeSeries.all()));
         }
     }
 
-    public static Result visualize(Long resultSetId){
+
+    @Security.Authenticated(Secured.class)
+    public static Result uploadFiles() throws IOException {
+        User loggedInUser = User.findByEmail(request().username());
+        Http.MultipartFormData body = request().body().asMultipartFormData();
+        List<Http.MultipartFormData.FilePart> resultSet = body.getFiles();
+        String[] name = body.asFormUrlEncoded().get("name");
+        String[] desc = body.asFormUrlEncoded().get("desc");
+        String description = "No description";
+        if (name.length < 1 || name[0].isEmpty() || name[0].equalsIgnoreCase(" ")) {
+            return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all(), TimeSeries.all()));
+        }
+
+        if (ResultSet.findByName(name[0]) != null) {
+            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
+        }
+
+        if (desc.length >= 1) {
+            description = desc[0];
+        }
+
+        if (resultSet != null) {
+
+            Logger.info(String.format("User %s uploaded a new set of time series files of name %s", loggedInUser.id, name[0]));
+            TimeSeries.createFromFiles(name[0], description, loggedInUser, resultSet);
+
+//            File file = resultSet.getFile();
+//            Logger.info(String.format("User %s uploaded a new result of name %s", loggedInUser.id, name[0]));
+//            ResultSet.createFromFile(name[0], description, loggedInUser, file);
+            return GO_DASHBOARD;
+        } else {
+            return badRequest(dashboard.render(loggedInUser, true, "Missing file.", ResultSet.all(), TimeSeries.all()));
+        }
+
+
+    }
+
+    public static Result visualize(Long resultSetId) {
         User loggedInUser = User.findByEmail(request().username());
         ResultSet r = ResultSet.findById(resultSetId);
 
@@ -96,7 +131,37 @@ public class Application extends Controller {
         return redirect(controllers.routes.Application.login());
     }
 
-    public static Result resultset(Long id){
+    public static Result addUser() {
+        Form<SignUp> loginForm = form(SignUp.class).bindFromRequest();
+        if (loginForm.hasErrors()) {
+            return badRequest();
+        } else {
+            session("email", loginForm.get().email);
+            return GO_DASHBOARD;
+        }
+    }
+
+    public static Result resultssetall(Long id) {
+        ResultSet r = ResultSet.findById(id);
+        ObjectNode result = Json.newObject();
+        result.put("id", id);
+        result.put("name", r.name);
+        result.put("desc", r.description);
+        result.put("uploaded", User.findById(r.uploaderId).email);
+        List<Cluster> clusters = Cluster.findByResultSet(r.id);
+        List<ObjectNode> clusterjsons = new ArrayList<ObjectNode>();
+        for (int i = 0; i < clusters.size(); i++) {
+            ObjectNode cluster = Json.newObject();
+            cluster.put("clusterid", clusters.get(i).cluster);
+            cluster.put("points", Json.toJson(Point.findByCluster(id, clusters.get(i).id)));
+            clusterjsons.add(cluster);
+        }
+
+        result.put("clusters", Json.toJson(clusterjsons));
+        return ok(result);
+    }
+
+    public static Result resultset(Long id) {
         ResultSet r = ResultSet.findById(id);
         ObjectNode result = Json.newObject();
         result.put("id", id);
@@ -111,7 +176,7 @@ public class Application extends Controller {
         return ok(result);
     }
 
-    public static Result cluster(Long rid, Integer cid){
+    public static Result cluster(Long rid, Integer cid) {
         Cluster c = Cluster.findByClusterId(rid, cid);
         ObjectNode result = Json.newObject();
         result.put("id", c.id);
@@ -160,6 +225,40 @@ public class Application extends Controller {
             User user = null;
             try {
                 user = User.authenticate(email, password);
+            } catch (AppException e) {
+                Logger.error("Something went wrong during authentication.", e);
+                return "Technical error, please retry later.";
+            }
+
+            if (user == null) {
+                String errMessage = "Invalid user or password.";
+                Logger.warn(errMessage);
+                return errMessage;
+            }
+
+            return null;
+        }
+
+    }
+
+    public static class SignUp {
+
+        @Constraints.Required
+        public String email;
+
+        @Constraints.Required
+        public String password;
+
+        /**
+         * Validate the authentication.
+         *
+         * @return null if validation ok, string with details otherwise
+         */
+        public String validate() {
+
+            User user = null;
+            try {
+                user = User.create(email, password, "Wickramasinghe");
             } catch (AppException e) {
                 Logger.error("Something went wrong during authentication.", e);
                 return "Technical error, please retry later.";

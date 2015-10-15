@@ -54,6 +54,8 @@ public class ResultSet extends Model {
     @Formats.NonEmpty
     public Long uploaderId;
 
+    public Long timeSeriesId;
+
     public static Model.Finder<Long, ResultSet> find = new Model.Finder<Long, ResultSet>(Long.class, ResultSet.class);
 
     public static ResultSet create(String name, String description, User uploader) {
@@ -68,9 +70,44 @@ public class ResultSet extends Model {
         return r;
     }
 
+    public static ResultSet create(String name, String description, User uploader, TimeSeries timeSeries) {
+        ResultSet r = new ResultSet();
+        r.name = name;
+        r.description = description;
+        r.uploaderId = uploader.id;
+        r.dateCreation = new Date();
+        r.timeSeriesId =  timeSeries.id;
+
+        r.save();
+
+        return r;
+    }
+
     public static ResultSet createFromFile(String name, String description, User uploader, File file) throws IOException {
         ResultSet r = create(name, description, uploader);
-        CSVReader reader = new CSVReader(new FileReader(file), '\t');
+        CSVReader reader = new CSVReader(new FileReader(file), ',');
+        String[] record;
+        while ((record = reader.readNext()) != null) {
+            Integer clusterId = Integer.valueOf(record[4].trim());
+            Cluster c = Cluster.findByClusterId(r.id, clusterId);
+            if (c == null) {
+                c = Cluster.create(clusterId, r);
+            }
+
+            Long pId = Long.valueOf(record[0]);
+            Float x = Float.valueOf(record[1]);
+            Float y = Float.valueOf(record[2]);
+            Float z = Float.valueOf(record[3]);
+
+            Point.create(x, y, z, c, r);
+        }
+
+        return r;
+    }
+
+    public static ResultSet createFromFile(String name, String description, User uploader, File file, TimeSeries timeSeries) throws IOException {
+        ResultSet r = create(name, description, uploader, timeSeries);
+        CSVReader reader = new CSVReader(new FileReader(file), ',');
         String[] record;
         while ((record = reader.readNext()) != null) {
             Integer clusterId = Integer.valueOf(record[4].trim());
@@ -97,6 +134,8 @@ public class ResultSet extends Model {
     public static ResultSet findByName(String name) {
         return find.where().eq("name", name).findUnique();
     }
+
+    public static List<ResultSet> findByTimeSeriesId(Long id) { return find.where().eq("timeSeriesId", id).findList();}
 
     public static List<ResultSet> all() {
         return find.all();
