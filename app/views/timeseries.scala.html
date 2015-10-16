@@ -169,7 +169,7 @@
     <script type="text/javascript">
     alert("asdasd");
         $.getJSON("@routes.Application.resultset(timeSeries.id)", function (data) {
-            var resultSetUrl = "@routes.Application.resultssetall(timeSeries.id)";
+            var resultSetUrl = "@routes.Application.timeseries(timeSeries.id)";
             visualize(resultSetUrl, data, @timeSeries.id);
         });
     </script>

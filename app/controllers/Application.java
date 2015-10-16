@@ -58,9 +58,9 @@ public class Application extends Controller {
             return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all(), TimeSeries.all()));
         }
 
-        if (ResultSet.findByName(name[0]) != null) {
-            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
-        }
+//        if (ResultSet.findByName(name[0]) != null) {
+//            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
+//        }
 
         if (desc.length >= 1) {
             description = desc[0];
@@ -88,10 +88,10 @@ public class Application extends Controller {
         if (name.length < 1 || name[0].isEmpty() || name[0].equalsIgnoreCase(" ")) {
             return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all(), TimeSeries.all()));
         }
-
-        if (ResultSet.findByName(name[0]) != null) {
-            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
-        }
+//
+//        if (ResultSet.findByName(name[0]) != null) {
+//            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
+//        }
 
         if (desc.length >= 1) {
             description = desc[0];

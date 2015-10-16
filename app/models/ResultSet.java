@@ -41,7 +41,6 @@ public class ResultSet extends Model {
     public Long id;
 
     @Constraints.Required
-    @Column(unique = true)
     public String name;
 
     @Constraints.Required
