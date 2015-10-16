@@ -55,9 +55,12 @@ public class TimeSeries extends Model {
 
     public static TimeSeries createFromFiles(String name, String description, User uploader, List<Http.MultipartFormData.FilePart> fileParts) throws IOException {
         TimeSeries timeSeries = create(name, description, uploader);
-        for (Http.MultipartFormData.FilePart filePart : fileParts) {
-            File file = filePart.getFile();
-            ResultSet.createFromFile(name, description, uploader, file, timeSeries);
+        String resultSetName =  "";
+        for (int i = 0; i < fileParts.size(); i++) {
+            File file = fileParts.get(i).getFile();
+            resultSetName = "timeseries_" + name + "_" + i;
+            ResultSet.createFromFile(resultSetName, description, uploader, file, timeSeries, (long)i);
+
         }
         return timeSeries;
     }

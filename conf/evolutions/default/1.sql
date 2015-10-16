@@ -27,6 +27,7 @@ create table result_set (
   date_creation             timestamp,
   uploader_id               bigint,
   time_series_id            bigint,
+  time_series_seq_number    bigint,
   constraint pk_result_set primary key (id))
 ;
 

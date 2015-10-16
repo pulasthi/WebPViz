@@ -41,6 +41,7 @@ var resultSetId;
 
 var container, stats;
 var camera, scene, renderer, sprite, colors = [], particles = [], material, controls, light;
+var particleSets = [];
 var mesh;
 var particleSystem;
 var colorMap = {};
@@ -61,6 +62,59 @@ function visualize(resultSetUrl, resultSet, id){
     resultSetId = id;
     generateGraph();
     animate();
+}
+
+function visualizeTimeSeries(resultSetUrl, timeSeries, id){
+
+    var resultSets = timeSeries.resultsets;
+    particleSets =  new Array(resultSets.length);
+    for (var i = 0; i < resultSets.length; i++) {
+        particles = [];
+        colors = [];
+        var geometry = [];
+        clusterUrl = "/resultssetall/" + resultSets[i].id;
+        $.getJSON(clusterUrl, function(data){
+            clusters = data.clusters;
+            for (var i = 0; i < clusters.length; i++) {
+                var clusterdata = data.clusters[i];
+                var clusterid = clusterdata.clusterid;
+
+                hsl = [heus[clusterid], 1, 0.8];
+
+                for (var k in clusterdata.points) {
+                    var p = clusterdata.points[k];
+
+                    //var hsl = [heus[data.cid], 1, 0.8];
+                    var vertex = new THREE.Vector3(p.x * 10, p.y * 10, p.z * 10);
+                    geometry[clusterid].vertices.push(vertex);
+
+                    //TODO can change this
+                    if (sections.indexOf(clusterid) == -1)
+                        sections.push(clusterid);
+
+                    colors[clusterid].push(new THREE.Color(0xffffff).setHSL(hsl[0], hsl[1], hsl[2]));
+
+                }
+            }
+
+            for(var i in geometry){
+                colorlist.push(colors[i][0].getHexString());
+                geometry[i].colors = colors[i];
+                particles[i] =  new THREE.PointCloud(geometry[i], material);
+                scene3d.add(particles[i]);
+
+            }
+
+            particleSets[data.timeSeriesSeqNumber] = particles;
+
+        });
+    }
+
+
+
+    //    resultSetId = id;
+    //    generateGraph();
+    //animate();
 }
 
 function initScene(file) {
@@ -171,30 +225,6 @@ function generateGraph() {
     }
     var hsl;
     var sections = [];
-    //TODO try to make the loop here not dependent on the fact that row[4] starts from 0
-    //for (var i in resultData.data) {
-    //    var row = resultData.data[i]
-    //    if(!(typeof row[4] === 'undefined')) {
-    //
-    //        if (geometry.length == row[4]) {
-    //            geometry.push(new THREE.Geometry());
-    //            colors.push(new Array());
-    //        }
-    //        hsl = [heus[row[4]], 1, 0.8];
-    //        var vertex = new THREE.Vector3();
-    //        vertex.x = row[1] * 10;
-    //        vertex.y = row[2] * 10;
-    //        vertex.z = row[3] * 10;
-    //
-    //        geometry[row[4]].vertices.push(vertex);
-    //
-    //        if (sections.indexOf(row[4]) == -1)
-    //            sections.push(row[4]);
-    //
-    //        colors[row[4]].push(new THREE.Color(0xffffff).setHSL(hsl[0], hsl[1], hsl[2]));
-    //      //  setupTween(geometry[row[4]].vertices.length, vertex.x,vertex.y,vertex.z, row[4])
-    //    }
-    //}
     $.getJSON(clusterUrl, function(data){
         for (var i = 0; i < clusters.length; i++) {
             var clusterdata = data.clusters[i];
@@ -336,14 +366,10 @@ function generateGraph() {
 
 function removeSection(id){
     scene3d.remove(particles[id]);
-   // render();
-   // animate();
 }
 
 function addSection(id){
     scene3d.add(particles[id]);
-   // render();
-   // animate();
 }
 
 function recolorSection(id, color){
@@ -353,39 +379,4 @@ function recolorSection(id, color){
     }
     particles[id].geometry.colors = colors[id];
     particles[id].geometry.colorsNeedUpdate = true;
-
-  //  render();
-}
-
-function setupTween(vertexid, x,y,z,clusterid){
-    //
-    var update	= function(){
-        particles[current.clusterid].geometry.vertices[current.vertexid].x = current.x;
-        particles[current.clusterid].geometry.vertices[current.vertexid].y = current.y;
-        particles[current.clusterid].geometry.vertices[current.vertexid].z = current.z;
-        particles[current.clusterid].geometry.verticesNeedUpdate = true;
-    }
-    var current	= { x: x, y: y,z: z,clusterid: clusterid,vertexid: vertexid};
-
-    // remove previous tweens if needed
-    //TWEEN.removeAll();
-
-    // convert the string from dat-gui into tween.js functions
-
-    var easing	= TWEEN.Easing.Linear.None;
-    // build the tween to go ahead
-    var tweenHead	= new TWEEN.Tween(current)
-        .to({x: +0.01,y: +0.01,z: +0.01,clusterid: clusterid,vertexid: vertexid}, 2000)
-        .delay(500)
-        .easing(easing)
-        .onUpdate(update);
-    // build the tween to go backward
-//        var tweenBack	= new TWEEN.Tween(current)
-//                .to({x: -userOpts.range}, userOpts.duration)
-//                .delay(userOpts.delay)
-//                .easing(easing)
-//                .onUpdate(update);
-
-    // start the first
-    tweenHead.start();
 }

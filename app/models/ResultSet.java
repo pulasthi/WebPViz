@@ -55,6 +55,8 @@ public class ResultSet extends Model {
 
     public Long timeSeriesId;
 
+    public Long timeSeriesSeqNumber;
+
     public static Model.Finder<Long, ResultSet> find = new Model.Finder<Long, ResultSet>(Long.class, ResultSet.class);
 
     public static ResultSet create(String name, String description, User uploader) {
@@ -69,13 +71,14 @@ public class ResultSet extends Model {
         return r;
     }
 
-    public static ResultSet create(String name, String description, User uploader, TimeSeries timeSeries) {
+    public static ResultSet create(String name, String description, User uploader, TimeSeries timeSeries, Long sequenceNumber) {
         ResultSet r = new ResultSet();
         r.name = name;
         r.description = description;
         r.uploaderId = uploader.id;
         r.dateCreation = new Date();
         r.timeSeriesId =  timeSeries.id;
+        r.timeSeriesSeqNumber =  sequenceNumber;
 
         r.save();
 
@@ -104,8 +107,8 @@ public class ResultSet extends Model {
         return r;
     }
 
-    public static ResultSet createFromFile(String name, String description, User uploader, File file, TimeSeries timeSeries) throws IOException {
-        ResultSet r = create(name, description, uploader, timeSeries);
+    public static ResultSet createFromFile(String name, String description, User uploader, File file, TimeSeries timeSeries, Long sequenceNumber) throws IOException {
+        ResultSet r = create(name, description, uploader, timeSeries,sequenceNumber);
         CSVReader reader = new CSVReader(new FileReader(file), ',');
         String[] record;
         while ((record = reader.readNext()) != null) {

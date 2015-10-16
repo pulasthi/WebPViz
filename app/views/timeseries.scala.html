@@ -167,10 +167,9 @@
         });
     </script>
     <script type="text/javascript">
-    alert("asdasd");
-        $.getJSON("@routes.Application.resultset(timeSeries.id)", function (data) {
+        $.getJSON("@routes.Application.timeseries(timeSeries.id)", function (data) {
             var resultSetUrl = "@routes.Application.timeseries(timeSeries.id)";
-            visualize(resultSetUrl, data, @timeSeries.id);
+            visualizeTimeSeries(resultSetUrl, data, @timeSeries.id);
         });
     </script>
 }

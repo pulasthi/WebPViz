@@ -58,9 +58,9 @@ public class Application extends Controller {
             return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all(), TimeSeries.all()));
         }
 
-//        if (ResultSet.findByName(name[0]) != null) {
-//            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
-//        }
+        if (ResultSet.findByName(name[0]) != null) {
+            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
+        }
 
         if (desc.length >= 1) {
             description = desc[0];
@@ -88,10 +88,10 @@ public class Application extends Controller {
         if (name.length < 1 || name[0].isEmpty() || name[0].equalsIgnoreCase(" ")) {
             return badRequest(dashboard.render(loggedInUser, true, "Empty or blank name.", ResultSet.all(), TimeSeries.all()));
         }
-//
-//        if (ResultSet.findByName(name[0]) != null) {
-//            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
-//        }
+
+        if (ResultSet.findByName(name[0]) != null) {
+            return badRequest(dashboard.render(loggedInUser, true, "Result set with same name exists.", ResultSet.all(), TimeSeries.all()));
+        }
 
         if (desc.length >= 1) {
             description = desc[0];
@@ -151,6 +151,10 @@ public class Application extends Controller {
         result.put("name", r.name);
         result.put("desc", r.description);
         result.put("uploaded", User.findById(r.uploaderId).email);
+        if(r.timeSeriesId != null){
+            result.put("timeSeriesId", r.timeSeriesId);
+            result.put("timeSeriesSeqNumber", r.timeSeriesSeqNumber);
+        }
         List<Cluster> clusters = Cluster.findByResultSet(r.id);
         List<ObjectNode> clusterjsons = new ArrayList<ObjectNode>();
         for (int i = 0; i < clusters.size(); i++) {
