@@ -7,6 +7,7 @@ import play.db.ebean.Model;
 import play.mvc.Http;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.io.File;
 import java.io.FileReader;
@@ -17,6 +18,7 @@ import java.util.List;
 /**
  * Created by pulasthiiu on 10/14/15.
  */
+@Entity
 public class TimeSeries extends Model {
 
     @Id

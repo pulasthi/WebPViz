@@ -26,6 +26,7 @@ GET         /upload                             controllers.Application.uploadGe
 
 # Visualize
 GET         /resultsets/:id                     controllers.Application.visualize(id: Long)
+GET         /timeseriesview/:id                 controllers.Application.visualizeTimeSeries(id: Long)
 
 # ResultSet data
 GET         /resultset/:id                      controllers.Application.resultset(id: Long)
@@ -34,6 +35,9 @@ GET         /resultset/:rid/cluster/:cid        controllers.Application.cluster(
 
 
 GET         /resultssetall/:id                  controllers.Application.resultssetall(id: Long)
+
+#time series
+GET         /timeseries/:id                     controllers.Application.timeseries(id: Long)
 
 
 

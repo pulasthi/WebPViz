@@ -11,10 +11,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
-import views.html.dashboard;
-import views.html.index;
-import views.html.login;
-import views.html.resultset;
+import views.html.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -123,6 +120,12 @@ public class Application extends Controller {
         return ok(resultset.render(loggedInUser, r));
     }
 
+    public static Result visualizeTimeSeries(Long timeSeriesId) {
+        User loggedInUser = User.findByEmail(request().username());
+        TimeSeries timeSeries = TimeSeries.findById(timeSeriesId);
+
+        return ok(timeseries.render(loggedInUser, timeSeries));
+    }
     public static Result uploadGet() {
         return redirect(controllers.routes.Application.dashboard());
     }
@@ -158,6 +161,19 @@ public class Application extends Controller {
         }
 
         result.put("clusters", Json.toJson(clusterjsons));
+        return ok(result);
+    }
+
+    public static Result timeseries(Long id) {
+        TimeSeries timeSeries = TimeSeries.findById(id);
+        ObjectNode result = Json.newObject();
+        result.put("id", id);
+        result.put("name", timeSeries.name);
+        result.put("desc", timeSeries.description);
+        result.put("uploaded", User.findById(timeSeries.uploaderId).email);
+
+        List<ResultSet> resultSets = ResultSet.findByTimeSeriesId(id);
+        result.put("resultsets", Json.toJson(resultSets));
         return ok(result);
     }
 

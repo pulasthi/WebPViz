@@ -1,6 +1,6 @@
-@(user: User, resultSet: ResultSet)
+@(user: User, timeSeries: TimeSeries)
 
-@main(resultSet.name, user){
+@main(timeSeries.name, user){
     <style>
     .viz {
     margin-top: -21px;
@@ -19,7 +19,7 @@
             <div class="main_container">
 
                 <div class="col-md-3 left_col">
-                    <div class="left_col">
+                    <div class="left_col scroll-view">
 
                         <div class="navbar nav_title" style="border: 0;">
                             <a href="index.html" class="site_title"><i class="fa fa-paw"></i> <span>PlotViz Web</span></a>
@@ -110,7 +110,7 @@
                         <input type="text" id="amount"  value="0" readonly style="border:0; color:#f6931f; font-weight:bold;">
                     </p>
                     <div id="slider"></div>
-                    @*<div id="slider-controls" class="slider-controls"> <a id="slider-play-a" href="#"><i id="slider-play" class="fa fa-pause"></i></a></div>*@
+                    <div id="slider-controls" class="slider-controls"> <a id="slider-play-a" href="#"><i id="slider-play" class="fa fa-pause"></i></a></div>
                     <footer>
                         <div class="">
                             <p class="pull-right">PlotViz<a></a>. |
@@ -132,11 +132,11 @@
         </div>
         @*<script>*@
         @*$(document).ready(function () {*@
-            @*if (!Detector.webgl) Detector.addGetWebGLMessage();*@
-            @*initScene();*@
+        @*if (!Detector.webgl) Detector.addGetWebGLMessage();*@
+        @*initScene();*@
 
         @*});*@
-    @*</script>*@
+        @*</script>*@
     </body>
 
 
@@ -151,7 +151,6 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/threeutils/OrbitControls.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/threeutils/stats.min.js")"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.1.1/randomColor.min.js"></script>
-
     <script>
         $(function() {
             $( "#slider" ).slider({
@@ -168,9 +167,10 @@
         });
     </script>
     <script type="text/javascript">
-        $.getJSON("@routes.Application.resultset(resultSet.id)", function (data) {
-            var resultSetUrl = "@routes.Application.resultssetall(resultSet.id)";
-            visualize(resultSetUrl, data, @resultSet.id);
+    alert("asdasd");
+        $.getJSON("@routes.Application.resultset(timeSeries.id)", function (data) {
+            var resultSetUrl = "@routes.Application.resultssetall(timeSeries.id)";
+            visualize(resultSetUrl, data, @timeSeries.id);
         });
     </script>
 }
