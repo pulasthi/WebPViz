@@ -188,25 +188,28 @@ function generateTimeSeries(resultSets) {
 
     setTimeout(function () {
         if ("0" in particleSets) {
-            $("#slider").slider("option", "max", Object.keys(particleSets).length);
-            $("#slider").slider("option", "value", $("#slider").slider("value"));
-            var currentparticles = particleSets["0"];
-            for (var i = 0; i < currentparticles.length; i++) {
-                scene3d.add(currentparticles[i]);
-            }
-            window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections, colorlist);
-            stats.domElement.style.position = 'absolute';
-            document.getElementById("stats").appendChild(stats.domElement);
-            window.addEventListener('resize', onWindowResize, false);
-            $('.color-pic1').colorpicker();
-            render();
-            animate();
+            updatePlotData();
         }
     }, 10000);
 }
 
 
 //Util functions
+
+function updatePlotData(){
+    $("#slider").slider("option", "max", Object.keys(particleSets).length);
+    $("#slider").slider("option", "value", $("#slider").slider("value"));
+    var currentparticles = particleSets["0"];
+    for (var i = 0; i < currentparticles.length; i++) {
+        scene3d.add(currentparticles[i]);
+    }
+    window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections, colorlist);
+    stats.domElement.style.position = 'absolute';
+    document.getElementById("stats").appendChild(stats.domElement);
+    window.addEventListener('resize', onWindowResize, false);
+    $('.color-pic1').colorpicker();
+}
+
 function setupThreeJs(){
     renderer = null;
     particles = [];
@@ -285,17 +288,6 @@ function onWindowResize() {
     renderer.setSize(width, height);
     controls.handleResize();
     render();
-}
-
-function updatePoints() {
-    for (var j in particles) {
-        for (var i in particles[j].geometry.vertices) {
-            particles[j].geometry.vertices[i].x += 0.001;
-            particles[j].geometry.vertices[i].y += 0.001
-            particles[j].geometry.vertices[i].z += 0.001
-            particles[j].geometry.verticesNeedUpdate = true;
-        }
-    }
 }
 
 function removeSection(id) {
