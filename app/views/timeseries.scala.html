@@ -160,7 +160,7 @@
                 animate:"slow",
                 orientation: "horizontal",
                 slide: function( event, ui ) {
-                    $( "#amount" ).val( ui.value );
+                  updatePlot(event, ui)
                 }
             });
             $( "#amount" ).val( $( "#slider" ).slider( "value" ) );

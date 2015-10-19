@@ -1,3 +1,26 @@
+/* varibles*/
+
+//Three js global varibles
+var camera, scene, renderer, sprite, colors = [], particles = [], material, controls, light;
+var container, stats;
+var heus = [0.05, 0.3, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95];
+var scene3d;
+var colors = [];
+var colorlist = [];
+var sections = [];
+
+
+//Single Plot Varibles
+var clusterUrl;
+var clusters;
+var resultSetId;
+var resultData;
+
+//Time Series Vars
+var particleSets = {};
+var timeSeriesData = [];
+
+//Generate the check box list for clusters
 function generateCheckList(list, initcolors) {
 
     var tabletop = "<table class='table table-striped' id='cluster_table' style='background-color: #EAEAEA; padding-top: 0px'>"
@@ -20,7 +43,7 @@ function generateCheckList(list, initcolors) {
             + "<input type='checkbox' class='flat' name='table_records' checked value='" + i + "'>"
             + "<label class='color-box-label'>" + i + "</label> "
             + "<div class='input-group color-pic1' style='width: 15px;height: 15px; display: inline-flex; padding-left: 20px;padding-top: 2px'>"
-            + "<input value='" + initcolors[i] + "' class='form-control' type='hidden' id='"+ i + "'>"
+            + "<input value='" + initcolors[i] + "' class='form-control' type='hidden' id='" + i + "'>"
             + "<span class='input-group-addon'><i style='background-color: rgb(1, 343, 69);'></i></span>"
             + "</div>"
             + "</td>"
@@ -35,28 +58,9 @@ function generateCheckList(list, initcolors) {
 
     return tabletop + tablerows + tableend;
 }
-var clusterUrl;
-var clusters;
-var resultSetId;
 
-var container, stats;
-var camera, scene, renderer, sprite, colors = [], particles = [], material, controls, light;
-var particleSets = [];
-var mesh;
-var particleSystem;
-var colorMap = {};
-var resultData;
-var timeSeriesData = [];
-var heus = [0.05, 0.3, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95];
-
-var mouseX = 10, mouseY = 10;
-var windowHalfX = window.innerWidth / 2;
-var windowHalfY = window.innerHeight / 2;
-var scene3d;
-var colors = [];
-var colorlist = [];
-
-function visualize(resultSetUrl, resultSet, id){
+//Plot functions
+function visualize(resultSetUrl, resultSet, id) {
     clusterUrl = resultSetUrl;
     clusters = resultSet.clusters;
     resultSetId = id;
@@ -64,159 +68,18 @@ function visualize(resultSetUrl, resultSet, id){
     animate();
 }
 
-function visualizeTimeSeries(resultSetUrl, timeSeries, id){
-
+function visualizeTimeSeries(resultSetUrl, timeSeries, id) {
     var resultSets = timeSeries.resultsets;
-    particleSets =  new Array(resultSets.length);
-    for (var i = 0; i < resultSets.length; i++) {
-        particles = [];
-        colors = [];
-        var geometry = [];
-        clusterUrl = "/resultssetall/" + resultSets[i].id;
-        $.getJSON(clusterUrl, function(data){
-            clusters = data.clusters;
-            for (var i = 0; i < clusters.length; i++) {
-                var clusterdata = data.clusters[i];
-                var clusterid = clusterdata.clusterid;
-
-                hsl = [heus[clusterid], 1, 0.8];
-
-                for (var k in clusterdata.points) {
-                    var p = clusterdata.points[k];
-
-                    //var hsl = [heus[data.cid], 1, 0.8];
-                    var vertex = new THREE.Vector3(p.x * 10, p.y * 10, p.z * 10);
-                    geometry[clusterid].vertices.push(vertex);
-
-                    //TODO can change this
-                    if (sections.indexOf(clusterid) == -1)
-                        sections.push(clusterid);
-
-                    colors[clusterid].push(new THREE.Color(0xffffff).setHSL(hsl[0], hsl[1], hsl[2]));
-
-                }
-            }
-
-            for(var i in geometry){
-                colorlist.push(colors[i][0].getHexString());
-                geometry[i].colors = colors[i];
-                particles[i] =  new THREE.PointCloud(geometry[i], material);
-                scene3d.add(particles[i]);
-
-            }
-
-            particleSets[data.timeSeriesSeqNumber] = particles;
-
-        });
-    }
-
-
-
-    //    resultSetId = id;
-    //    generateGraph();
-    //animate();
+    particleSets = new Array(resultSets.length);
+    generateTimeSeries(resultSets);
 }
 
-function initScene(file) {
-    Papa.parse(file, {
-        download: true,
-        complete: function (results) {
-            resultData = results
-            generateGraph();
-        },
-        error: function(err, file, inputElem, reason)
-        {
-            alert("Error while parsing the file" + file + "Reason" +reason);
-        }
-    });
-
-
-};
-
-function initSceneTimeSeries(files) {
-    // timeSeriesData = new Array(files.length);
-    for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        Papa.parse(file, {
-            download: true,
-            complete: function (results) {
-                timeSeriesData.push(results)
-            },
-            error: function (err, file, inputElem, reason) {
-                alert("Error while parsing the file" + file + "Reason" + reason);
-            }
-        });
-    }
-    generateTimeSeries(0);
-};
-function animate() {
-    //setTimeout( function() {
-    //
-    //    requestAnimationFrame( animate );
-    //
-    //}, 1000 / 30 );
-    requestAnimationFrame( animate );
-    controls.update();
-    stats.update();
-
-    render();
-   // updatePoints();
-}
-
-function render() {
-    var camera = scene3d.getObjectByName('camera');
-    renderer.render(scene3d, camera);
-}
-//TODO WInodow rezise does not work yet need to fix
-function onWindowResize() {
-    var width = $('#canvas3d').width();
-    var height = $('#canvas3d').height();
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
-    controls.handleResize();
-    render();
-}
-
-function updatePoints(){
-    for (var j in particles) {
-        for (var i in particles[j].geometry.vertices) {
-            particles[j].geometry.vertices[i].x += 0.001;
-            particles[j].geometry.vertices[i].y  += 0.001
-            particles[j].geometry.vertices[i].z  += 0.001
-            particles[j].geometry.verticesNeedUpdate = true;
-        }
-    }
-}
 
 function generateGraph() {
-    renderer = null;
-    particles = [];
-    colors = [];
-    controls = null;
 
-    var canvasWidth = $('#canvas3d').width();
-    var canvasHeight = $('#canvas3d').height();
-    //new THREE.Scene
-    scene3d = new THREE.Scene();
-    stats = new Stats();
-    //set the scene
-    var canvas3d = $('#canvas3d');
-    //new THREE.WebGLRenderer
-    renderer = new THREE.WebGLRenderer({canvas: canvas3d.get(0), antialias: true});
-    renderer.setSize(canvasWidth, canvasHeight);
-    renderer.setClearColor(0x121224, 1);
+    setupThreeJs();
 
-    //new THREE.PerspectiveCamera
-    var camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.1, 10000);
-    camera.name = 'camera';
-    camera.position.set(1,1,1);
-    scene3d.add(camera);
-    //removeclusters.push("1")
-    // new THREE.TrackballControls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    var cluster
-
+    var cluster;
     var geometry = [];
     for (var i = 0; i < clusters.length; i++) {
         geometry.push(new THREE.Geometry());
@@ -225,7 +88,7 @@ function generateGraph() {
     }
     var hsl;
     var sections = [];
-    $.getJSON(clusterUrl, function(data){
+    $.getJSON(clusterUrl, function (data) {
         for (var i = 0; i < clusters.length; i++) {
             var clusterdata = data.clusters[i];
             var clusterid = clusterdata.clusterid;
@@ -247,14 +110,14 @@ function generateGraph() {
 
             }
         }
-        for(var i in geometry){
+        for (var i in geometry) {
             colorlist.push(colors[i][0].getHexString());
             geometry[i].colors = colors[i];
-            particles[i] =  new THREE.PointCloud(geometry[i], material);
+            particles[i] = new THREE.PointCloud(geometry[i], material);
             scene3d.add(particles[i]);
 
         }
-        window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections,colorlist);
+        window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections, colorlist);
         stats.domElement.style.position = 'absolute';
         document.getElementById("stats").appendChild(stats.domElement);
         window.addEventListener('resize', onWindowResize, false);
@@ -262,8 +125,115 @@ function generateGraph() {
         render();
         animate();
     });
+    setupMatrial()
+    animate();
+
+}
+
+function generateTimeSeries(resultSets) {
+    setupThreeJs();
+    var cluster;
+    var geometry = [];
+    var hsl;
+
+    for (var i = 0; i < resultSets.length; i++) {
+
+        clusterUrl = "/resultssetall/" + resultSets[i].id;
+        $.getJSON(clusterUrl, function (data) {
+            particles = [];
+            colors = [];
+            geometry = [];
+            sections = [];
+            clusters = data.clusters;
+            for (var i = 0; i < clusters.length; i++) {
+                geometry.push(new THREE.Geometry());
+                colors.push(new Array());
+                particles.push(new Array());
+                var clusterdata = data.clusters[i];
+                var clusterid = clusterdata.clusterid;
+
+                hsl = [heus[clusterid], 1, 0.8];
+
+                for (var k in clusterdata.points) {
+                    var p = clusterdata.points[k];
+
+                    //var hsl = [heus[data.cid], 1, 0.8];
+                    var vertex = new THREE.Vector3(p.x * 10, p.y * 10, p.z * 10);
+                    geometry[clusterid].vertices.push(vertex);
+
+                    //TODO can change this
+                    if (sections.indexOf(clusterid) == -1)
+                        sections.push(clusterid);
+
+                    colors[clusterid].push(new THREE.Color(0xffffff).setHSL(hsl[0], hsl[1], hsl[2]));
+
+                }
+            }
+
+            for (var i in geometry) {
+                colorlist.push(colors[i][0].getHexString());
+                geometry[i].colors = colors[i];
+                particles[i] = new THREE.PointCloud(geometry[i], material);
+                //scene3d.add(particles[i]);
+
+            }
+
+            particleSets[data.timeSeriesSeqNumber] = particles;
 
 
+        });
+
+    }
+    setupMatrial();
+
+    setTimeout(function () {
+        if ("0" in particleSets) {
+            $("#slider").slider("option", "max", Object.keys(particleSets).length);
+            $("#slider").slider("option", "value", $("#slider").slider("value"));
+            var currentparticles = particleSets["0"];
+            for (var i = 0; i < currentparticles.length; i++) {
+                scene3d.add(currentparticles[i]);
+            }
+            window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections, colorlist);
+            stats.domElement.style.position = 'absolute';
+            document.getElementById("stats").appendChild(stats.domElement);
+            window.addEventListener('resize', onWindowResize, false);
+            $('.color-pic1').colorpicker();
+            render();
+            animate();
+        }
+    }, 10000);
+}
+
+
+//Util functions
+function setupThreeJs(){
+    renderer = null;
+    particles = [];
+    colors = [];
+    controls = null;
+    var canvasWidth = $('#canvas3d').width();
+    var canvasHeight = $('#canvas3d').height();
+
+    //new THREE.Scene
+    scene3d = new THREE.Scene();
+    stats = new Stats();
+    //set the scene
+    var canvas3d = $('#canvas3d');
+    //new THREE.WebGLRenderer
+    renderer = new THREE.WebGLRenderer({canvas: canvas3d.get(0), antialias: true});
+    renderer.setSize(canvasWidth, canvasHeight);
+    renderer.setClearColor(0x121224, 1);
+
+    //new THREE.PerspectiveCamera
+    camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.1, 10000);
+    camera.name = 'camera';
+    camera.position.set(1, 1, 1);
+    scene3d.add(camera);
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+}
+
+function setupMatrial(){
     material = new THREE.PointCloudMaterial({
         size: 0.003,
         map: sprite,
@@ -271,110 +241,74 @@ function generateGraph() {
         transparent: true
     });
     material.color.setHSL(1.0, 1, 1);
-    //for(var i in geometry){
-    //    colorlist.push(colors[i][0].getHexString());
-    //    geometry[i].colors = colors[i];
-    //    particles.push( new THREE.PointCloud(geometry[i], material));
-    //    scene3d.add(particles[i]);
-    //
-    //}
-
-    animate();
-
 }
 
-    function generateTimeSeries(index) {
-        renderer = null;
-        particles = [];
-        colors = [];
-        controls = null;
-
-        var canvasWidth = $('#canvas3d').width();
-        var canvasHeight = $('#canvas3d').height();
-        //new THREE.Scene
+function updatePlot(event, ui) {
+    if (ui.value in particleSets) {
         scene3d = new THREE.Scene();
-        stats = new Stats();
-        //set the scene
-        var canvas3d = $('#canvas3d');
-        //new THREE.WebGLRenderer
-        renderer = new THREE.WebGLRenderer({canvas: canvas3d.get(0), antialias: true});
-        renderer.setSize(canvasWidth, canvasHeight);
-        renderer.setClearColor(0x121224, 1);
-
-        //new THREE.PerspectiveCamera
-        var camera = new THREE.PerspectiveCamera(45, canvasWidth / canvasHeight, 0.1, 10000);
-        camera.name = 'camera';
-        camera.position.set(1,1,1);
         scene3d.add(camera);
-        //removeclusters.push("1")
-        // new THREE.TrackballControls
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        var cluster
-
-        var geometry = [];
-        var hsl;
-        var sections = [];
-        //TODO try to make the loop here not dependent on the fact that row[4] starts from 0
-        for (var i in timeSeriesData[index].data) {
-            var row = timeSeriesData[index].data[i]
-            if(!(typeof row[4] === 'undefined')) {
-
-                if (geometry.length == row[4]) {
-                    geometry.push(new THREE.Geometry());
-                    colors.push(new Array());
-                }
-                hsl = [heus[row[4]], 1, 0.8];
-                var vertex = new THREE.Vector3();
-                vertex.x = row[1] * 10;
-                vertex.y = row[2] * 10;
-                vertex.z = row[3] * 10;
-
-                geometry[row[4]].vertices.push(vertex);
-
-                if (sections.indexOf(row[4]) == -1)
-                    sections.push(row[4]);
-
-                colors[row[4]].push(new THREE.Color(0xffffff).setHSL(hsl[0], hsl[1], hsl[2]));
-                //  setupTween(geometry[row[4]].vertices.length, vertex.x,vertex.y,vertex.z, row[4])
-            }
+        $("#slider").slider("option", "max", Object.keys(particleSets).length);
+        $("#slider").slider("option", "value", $("#slider").slider("value"));
+        var currentparticles = particleSets[ui.value];
+        for (var i = 0; i < currentparticles.length; i++) {
+            scene3d.add(currentparticles[i]);
         }
-
-
-        material = new THREE.PointCloudMaterial({
-            size: 0.003,
-            map: sprite,
-            vertexColors: THREE.VertexColors,
-            transparent: true
-        });
-        material.color.setHSL(1.0, 1, 1);
-        for(var i in geometry){
-            colorlist.push(colors[i][0].getHexString());
-            geometry[i].colors = colors[i];
-            particles.push( new THREE.PointCloud(geometry[i], material));
-            scene3d.add(particles[i]);
-
-        }
-        window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections,colorlist);
+        window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections, colorlist);
         stats.domElement.style.position = 'absolute';
         document.getElementById("stats").appendChild(stats.domElement);
         window.addEventListener('resize', onWindowResize, false);
         $('.color-pic1').colorpicker();
         render();
         animate();
-
     }
+    $("#amount").val(ui.value);
 
-function removeSection(id){
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    stats.update();
+    render();
+}
+
+function render() {
+    var camera = scene3d.getObjectByName('camera');
+    renderer.render(scene3d, camera);
+}
+//TODO WInodow rezise does not work yet need to fix
+function onWindowResize() {
+    var width = $('#canvas3d').width();
+    var height = $('#canvas3d').height();
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    controls.handleResize();
+    render();
+}
+
+function updatePoints() {
+    for (var j in particles) {
+        for (var i in particles[j].geometry.vertices) {
+            particles[j].geometry.vertices[i].x += 0.001;
+            particles[j].geometry.vertices[i].y += 0.001
+            particles[j].geometry.vertices[i].z += 0.001
+            particles[j].geometry.verticesNeedUpdate = true;
+        }
+    }
+}
+
+function removeSection(id) {
     scene3d.remove(particles[id]);
 }
 
-function addSection(id){
+function addSection(id) {
     scene3d.add(particles[id]);
 }
 
-function recolorSection(id, color){
+function recolorSection(id, color) {
     colorlist[id] = color;
-    for(var i in colors[id]){
+    for (var i in colors[id]) {
         colors[id][i] = new THREE.Color(color);
     }
     particles[id].geometry.colors = colors[id];
