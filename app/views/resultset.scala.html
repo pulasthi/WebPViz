@@ -105,12 +105,6 @@
                     <!-- page content -->
                 <div class="right_col" role="main">
                     <canvas id="canvas3d" style="position: relative; min-height: 1000px; width: 100%;"></canvas>
-                    <p>
-                        <label for="amount">Value:</label>
-                        <input type="text" id="amount"  value="0" readonly style="border:0; color:#f6931f; font-weight:bold;">
-                    </p>
-                    <div id="slider"></div>
-                    @*<div id="slider-controls" class="slider-controls"> <a id="slider-play-a" href="#"><i id="slider-play" class="fa fa-pause"></i></a></div>*@
                     <footer>
                         <div class="">
                             <p class="pull-right">PlotViz<a></a>. |
@@ -152,21 +146,6 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/threeutils/stats.min.js")"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.1.1/randomColor.min.js"></script>
 
-    <script>
-        $(function() {
-            $( "#slider" ).slider({
-                min: 0,
-                max: 100,
-                value: 0,
-                animate:"slow",
-                orientation: "horizontal",
-                slide: function( event, ui ) {
-                    $( "#amount" ).val( ui.value );
-                }
-            });
-            $( "#amount" ).val( $( "#slider" ).slider( "value" ) );
-        });
-    </script>
     <script type="text/javascript">
         $.getJSON("@routes.Application.resultset(resultSet.id)", function (data) {
             var resultSetUrl = "@routes.Application.resultssetall(resultSet.id)";

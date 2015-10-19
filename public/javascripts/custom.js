@@ -11,10 +11,12 @@ $(function () {
 
     $('#slider-play').click(function () {
         var $this = $(this);
+
         if ($this.hasClass("fa fa-play-circle")) {
+            animateTimeSeriesPlay();
             $this.removeClass("fa fa-play-circle").addClass("fa fa-pause");
-        }
-        else {
+        }else {
+            animateTimeSeriesPause();
             $this.removeClass("fa fa-pause").addClass("fa fa-play-circle");
         }
     });

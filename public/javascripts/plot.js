@@ -19,6 +19,8 @@ var resultData;
 //Time Series Vars
 var particleSets = {};
 var timeSeriesData = [];
+var isPlaying = false;
+var isPaused = false;
 
 //Generate the check box list for clusters
 function generateCheckList(list, initcolors) {
@@ -189,15 +191,17 @@ function generateTimeSeries(resultSets) {
     setTimeout(function () {
         if ("0" in particleSets) {
             updatePlotData();
+            render();
+            animate();
         }
-    }, 10000);
+    }, 15000);
 }
 
 
 //Util functions
 
 function updatePlotData(){
-    $("#slider").slider("option", "max", Object.keys(particleSets).length);
+    $("#slider").slider("option", "max", Object.keys(particleSets).length-1);
     $("#slider").slider("option", "value", $("#slider").slider("value"));
     var currentparticles = particleSets["0"];
     for (var i = 0; i < currentparticles.length; i++) {
@@ -250,7 +254,6 @@ function updatePlot(event, ui) {
     if (ui.value in particleSets) {
         scene3d = new THREE.Scene();
         scene3d.add(camera);
-        $("#slider").slider("option", "max", Object.keys(particleSets).length);
         $("#slider").slider("option", "value", $("#slider").slider("value"));
         var currentparticles = particleSets[ui.value];
         for (var i = 0; i < currentparticles.length; i++) {
@@ -305,4 +308,38 @@ function recolorSection(id, color) {
     }
     particles[id].geometry.colors = colors[id];
     particles[id].geometry.colorsNeedUpdate = true;
+}
+
+function animateTimeSeriesPlay(){
+    isPlaying = true;
+    isPaused = false;
+    playLoop();
+}
+
+function playLoop() {
+    var currentValue = $("#slider").slider("value");
+    var maxValue = $("#slider").slider("option", "max");
+    setTimeout(function () {
+        scene3d = new THREE.Scene();
+        scene3d.add(camera);
+        $("#slider").slider("option", "value", currentValue + 1);
+        var currentparticles = particleSets[currentValue + 1];
+        for (var i = 0; i < currentparticles.length; i++) {
+            scene3d.add(currentparticles[i]);
+        }
+        window.document.getElementById("cluster_table_div").innerHTML = generateCheckList(sections, colorlist);
+        stats.domElement.style.position = 'absolute';
+        document.getElementById("stats").appendChild(stats.domElement);
+        window.addEventListener('resize', onWindowResize, false);
+        $('.color-pic1').colorpicker();
+        $("#amount").val(currentValue + 1);
+        render();
+        if (maxValue > currentValue + 1 && !isPaused) {
+            playLoop();
+        }
+    }, 300);
+}
+
+function  animateTimeSeriesPause(){
+    isPaused = true
 }
